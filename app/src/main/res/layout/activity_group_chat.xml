@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/scroll_view"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    tools:context=".GroupChatActivity">
+<RelativeLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/main_app_bar">
+    <include
+        android:id="@+id/group_app_toolbar"
+        layout="@layout/app_bar"
+        >
+    </include>
+
+
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:layout_below="@id/main_app_bar"
+        android:background="#DAF7A6"
+
+        >
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/group_chat_display"
+            android:textSize="20dp"
+            android:textStyle="bold"
+
+            android:textColor="#900C3F"
+            ></TextView>
+
+    </LinearLayout>
+    <LinearLayout
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:id="@+id/my_linear_layout"
+        android:orientation="horizontal"
+        android:layout_alignParentBottom="true">
+        
+        <EditText
+            android:layout_width="270dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/message_text"
+            android:textColor="#4733FF"
+            android:hint="Type Your Message Here"
+            android:textStyle="bold"
+            android:padding="17dp"></EditText>
+         <ImageButton
+             android:layout_width="wrap_content"
+             android:layout_height="80dp"
+             android:id="@+id/sendto_img"
+             android:src="@drawable/sento_button"></ImageButton>
+
+    </LinearLayout>
+
+</RelativeLayout>
+</ScrollView>
