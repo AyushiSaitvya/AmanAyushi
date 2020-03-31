@@ -1,9 +1,12 @@
 package com.example.chitchat;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import de.hdodenhof.circleimageview.CircleImageView;
 
+import android.app.Notification;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -13,6 +16,7 @@ import android.widget.Toast;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -20,13 +24,15 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.squareup.picasso.Picasso;
 
+import java.util.HashMap;
+
 public class ProfileActivity extends AppCompatActivity {
 
-    private String receiverUserId,Current_state,senderUserId;
+    private String receiverUserId, Current_state,senderUserId;
     private CircleImageView profile_img;
     private TextView user_name;
     private TextView user_status;
-    private DatabaseReference Userref,chatRequest,contactsRef;
+    private DatabaseReference Userref,chatRequest,contactsRef,Notificationref;
     private Button DeclineMessageRequest;
     private FirebaseAuth mAuth;
     private Button sendMessageButton;
@@ -41,6 +47,7 @@ public class ProfileActivity extends AppCompatActivity {
         user_status=findViewById(R.id.visit_user_status);
         sendMessageButton=findViewById(R.id.send_message_request);
         DeclineMessageRequest=findViewById(R.id.decline_message_request);
+        Notificationref=FirebaseDatabase.getInstance().getReference().child("Notifications");
 
 
         chatRequest=FirebaseDatabase.getInstance().getReference().child("users");
@@ -48,16 +55,15 @@ public class ProfileActivity extends AppCompatActivity {
         senderUserId=mAuth.getCurrentUser().getUid();
         Userref= FirebaseDatabase.getInstance().getReference().child("users").child(senderUserId).child("requests");
 
-//        contactsRef=FirebaseDatabase.getInstance().getReference().child("users").child(senderUserId).child("contacts");
 
-        Toast.makeText(this,receiverUserId,Toast.LENGTH_SHORT).show();
+
+
         Current_state="new";
 
         retrieveUserInfo();
         GetStatus();
-        Toast.makeText(ProfileActivity.this,Current_state,Toast.LENGTH_SHORT).show();
-//        ManageRequest();
     }
+
 
     private void retrieveUserInfo() {
         chatRequest.child(receiverUserId).addValueEventListener(new ValueEventListener() {
@@ -72,8 +78,9 @@ public class ProfileActivity extends AppCompatActivity {
                     user_status.setText(status);
                     String img=dataSnapshot.child("image").getValue().toString();
                     Picasso.get().load(img).placeholder(R.drawable.person).into(profile_img);
-                    
+                    GetStatus();
 
+                    ManageRequest();
                 }
                  else if(dataSnapshot.exists())
                  {
@@ -81,6 +88,9 @@ public class ProfileActivity extends AppCompatActivity {
                      user_name.setText(name);
                      String status=dataSnapshot.child("status").getValue().toString();
                      user_status.setText(status);
+                     GetStatus();
+                     Toast.makeText(ProfileActivity.this,Current_state,Toast.LENGTH_SHORT).show();
+                     ManageRequest();
 
                  }
             }
@@ -128,12 +138,18 @@ public class ProfileActivity extends AppCompatActivity {
                     sendMessageButton.setText("Add Friend");
                     DeclineMessageRequest.setVisibility(View.INVISIBLE);
                 }
+
+
+                ManageRequest();
+
+
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
 
             }
+
         });
 
 
@@ -182,21 +198,12 @@ public class ProfileActivity extends AppCompatActivity {
                 sendMessageButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        Toast.makeText(ProfileActivity.this,"Never Forget your Family",Toast.LENGTH_SHORT).show();
                         SendChatRequest();
 
                     }
                 });
             }
         }
-
-
-
-
-
-
-
-
     }
 
 
@@ -237,18 +244,35 @@ public class ProfileActivity extends AppCompatActivity {
                           public void onComplete(@NonNull Task<Void> task) {
                                if(task.isSuccessful())
                                {
-                                   sendMessageButton.setEnabled(true);
-                                   Current_state="request_sent";
-                                   sendMessageButton.setText("Cancel Request");
-                                   DeclineMessageRequest.setVisibility(View.INVISIBLE);
+
+                                   HashMap<String,String> refmap=new HashMap<>();
+                                   refmap.put("from",senderUserId);
+                                   refmap.put("type","request");
+
+                                   Notificationref.child(receiverUserId).push().setValue(refmap).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                       @Override
+                                       public void onComplete(@NonNull Task<Void> task) {
+                                           if(task.isSuccessful())
+                                           {
+                                               sendMessageButton.setEnabled(true);
+                                               Current_state="request_sent";
+                                               sendMessageButton.setText("Cancel Request");
+                                               DeclineMessageRequest.setVisibility(View.INVISIBLE);
+                                           }
+                                       }
+                                   });
+
+
                                }
 
                           }
                       });
+
                   }
 
              }
          });
+
 
     }
 
@@ -277,5 +301,7 @@ public class ProfileActivity extends AppCompatActivity {
        });
 
     }
+
+
 
 }

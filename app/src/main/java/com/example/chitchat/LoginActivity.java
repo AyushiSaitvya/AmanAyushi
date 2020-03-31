@@ -28,6 +28,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.iid.FirebaseInstanceId;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -39,10 +40,11 @@ public class LoginActivity extends AppCompatActivity {
     private ProgressBar mprogressBar;
     private String email;
     private String password;
-    private FirebaseUser mCurrentUser;
+
     private static final String LOG_TAG = "MyActivity";
     private Button phone_but;
     private DatabaseReference rootref;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,7 +52,7 @@ public class LoginActivity extends AppCompatActivity {
         setContentView(R.layout.activity_login2);
 
         mFirebaseAuth = FirebaseAuth.getInstance();
-        mCurrentUser=mFirebaseAuth.getCurrentUser();
+
         rootref=FirebaseDatabase.getInstance().getReference();
         mEmail = findViewById(R.id.input_email);
         mpassword = findViewById(R.id.input_password);
@@ -59,6 +61,7 @@ public class LoginActivity extends AppCompatActivity {
         SignUpLink = findViewById(R.id.link_signup);
         mForgotPassword = findViewById(R.id.Forgot_password);
         phone_but=findViewById(R.id.phone);
+
 
         logbtn.setOnClickListener(new View.OnClickListener() {
 
@@ -86,12 +89,23 @@ public class LoginActivity extends AppCompatActivity {
 
 
                         if (task.isSuccessful()) {
-                            mprogressBar.setVisibility(View.INVISIBLE);
-                            Toast.makeText(getApplicationContext(), "Logged IN SUCCESSFULLY", Toast.LENGTH_LONG).show();
-                            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                            startActivity(intent);
-                            finish();
+
+                                         String current_id=mFirebaseAuth.getCurrentUser().getUid();
+                                         String device_token=FirebaseInstanceId.getInstance().getToken();
+
+                                         rootref.child("users").child(current_id).child("device_token").setValue(device_token);
+
+                                         mprogressBar.setVisibility(View.INVISIBLE);
+                                         Toast.makeText(getApplicationContext(), "Logged IN SUCCESSFULLY", Toast.LENGTH_LONG).show();
+                                         Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                                         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                         startActivity(intent);
+                                         finish();
+
+
+//
+
+
 
                         } else {
                             mprogressBar.setVisibility(View.INVISIBLE);
@@ -171,50 +185,5 @@ public class LoginActivity extends AppCompatActivity {
 
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
 
-        if(mCurrentUser!=null)
-//            Toast.makeText(LoginActivity.this,mCurrentUser.getProviderId(),Toast.LENGTH_SHORT).show();
-            verifyUser();
-
-
-    }
-
-    private void verifyUser()
-    {
-        final String currentUserUID=mCurrentUser.getUid();
-
-        rootref.child("users").child(currentUserUID).addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-
-                if(dataSnapshot.exists()) {
-                    if (dataSnapshot.child("name").exists()) {
-                        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                        startActivity(intent);
-                        finish();
-
-
-                    } else {
-                        Toast.makeText(LoginActivity.this, currentUserUID, Toast.LENGTH_SHORT).show();
-                        Intent intent = new Intent(LoginActivity.this, SettingsActivity.class);
-                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                        startActivity(intent);
-                        finish();
-
-                    }
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError)
-            {
-
-            }
-        });
-
-    }
 }

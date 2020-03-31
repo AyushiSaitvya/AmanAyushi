@@ -9,6 +9,13 @@
 
     </item>
     <item
+        android:id="@+id/find_group"
+        app:showAsAction="never"
+        android:title="Find Groups">
+
+
+    </item>
+    <item
         android:id="@+id/create_Group"
         app:showAsAction="never"
         android:title="Create Group">
@@ -30,6 +37,9 @@
 
 
     </item>
-
-
+<!--    <item-->
+<!--        android:id="@+id/SeeList"-->
+<!--        app:showAsAction="never"-->
+<!--        android:title="SeeList">-->
+<!--        </item>-->
 </menu>

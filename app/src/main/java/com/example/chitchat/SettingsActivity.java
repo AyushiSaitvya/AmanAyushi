@@ -62,76 +62,13 @@ public class SettingsActivity extends AppCompatActivity {
 
 
         UserProfileImagesRef= FirebaseStorage.getInstance().getReference().child("ProfileImages");
-
-
         mupdate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String username=musername.getText().toString();
-                String thought=mthought.getText().toString();
+                UpdateSettings();
 
-
-                if(TextUtils.isEmpty(username))
-                {
-                    Toast.makeText(SettingsActivity.this,"UserName is Mandatory",Toast.LENGTH_SHORT).show();
-                }
-                if(TextUtils.isEmpty(thought))
-                {
-                    Toast.makeText(SettingsActivity.this,"Enter your thoughts",Toast.LENGTH_SHORT).show();
-                }
-                if(!(TextUtils.isEmpty(username)))
-                {
-//                    HashMap<String,String>profileMap=new HashMap<>();
-//                    profileMap.put("uid",CurrentUserId);
-//                    profileMap.put("name",username);
-//                    profileMap.put("status",thought);
-//                    profileMap.put("image",mImage);
-//                    rootref.child("users").child(CurrentUserId).setValue(profileMap).addOnCompleteListener(new OnCompleteListener<Void>() {
-//                        @Override
-//                        public void onComplete(@NonNull Task<Void> task) {
-//
-//                            if(task.isSuccessful())
-//                            {
-//                              Toast.makeText(SettingsActivity.this,"Profile Updated Successfully",Toast.LENGTH_SHORT) .show();
-////                              Intent intent=new Intent(SettingsActivity.this,MainActivity.class);
-////                              intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_CLEAR_TASK);
-////                              startActivity(intent);
-////                              finish();
-//                            }
-//                            else
-//                            {
-//                                String message=task.getException().toString();
-//                                Toast.makeText(SettingsActivity.this,message,Toast.LENGTH_SHORT);
-//                            }
-//                        }
-//                    });
-                  rootref.child("users").child(CurrentUserId).child("name").setValue(username).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                                                                                                         @Override
-                                                                                                                         public void onComplete(@NonNull Task<Void> task) {
-                                                                                                                             if(!task.isSuccessful())
-                                                                                                                             {
-                                                                                                                                 String message=task.getException().toString();
-                                                        Toast.makeText(SettingsActivity.this,message,Toast.LENGTH_SHORT);
-                                                                                                                             }
-                                                                                                                         }
-                                                                                                                     }
-                  );
-                    rootref.child("users").child(CurrentUserId).child("status").setValue(thought).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                                                                                                           @Override
-                                                                                                                           public void onComplete(@NonNull Task<Void> task) {
-                                                                                                                               if(!task.isSuccessful())
-                                                                                                                               {
-                                                                                                                                   String message=task.getException().toString();
-                                                                                                                                   Toast.makeText(SettingsActivity.this,message,Toast.LENGTH_SHORT);
-                                                                                                                               }
-                                                                                                                           }
-                                                                                                                       }
-                    );
-
-                }
             }
         });
-
 
         mprofileimage.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -145,19 +82,6 @@ public class SettingsActivity extends AppCompatActivity {
         retreiveUserInfo();
     }
 
-//    private void getImageId() {
-//        rootref.child("users").child(CurrentUserId).addValueEventListener(new ValueEventListener() {
-//            @Override
-//            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-//                mImage=dataSnapshot.child("image").getValue().toString();
-//            }
-//
-//            @Override
-//            public void onCancelled(@NonNull DatabaseError databaseError) {
-//
-//            }
-//        });
-//    }
 
     private void retreiveUserInfo() {
         rootref.child("users").child(CurrentUserId).addValueEventListener(new ValueEventListener() {
@@ -230,5 +154,47 @@ public class SettingsActivity extends AppCompatActivity {
            }
         }
 
+
     }
+    private void UpdateSettings()
+    {
+        String username=musername.getText().toString();
+                String thought=mthought.getText().toString();
+
+
+                if(TextUtils.isEmpty(username))
+                {
+                    Toast.makeText(SettingsActivity.this,"UserName is Mandatory",Toast.LENGTH_SHORT).show();
+                }
+                if(TextUtils.isEmpty(thought))
+                {
+                    Toast.makeText(SettingsActivity.this,"Enter your thoughts",Toast.LENGTH_SHORT).show();
+                }
+                if(!(TextUtils.isEmpty(username)))
+                {
+                    HashMap<String, Object> profileMap = new HashMap<>();
+                    profileMap.put("name", username);
+                    profileMap.put("status", thought);
+                    rootref.child("users").child(CurrentUserId).updateChildren(profileMap)
+                            .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task)
+                                {
+                                    if (task.isSuccessful())
+                                    {
+
+                                        Toast.makeText(SettingsActivity.this, "Profile Updated Successfully...", Toast.LENGTH_SHORT).show();
+                                    }
+                                    else
+                                    {
+                                        String message = task.getException().toString();
+                                        Toast.makeText(SettingsActivity.this, "Error: " + message, Toast.LENGTH_SHORT).show();
+                                    }
+                                }
+                            });
+
+                }
+
+    }
+
 }

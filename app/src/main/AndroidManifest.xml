@@ -9,10 +9,14 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".ProfileActivity"></activity>
+        <activity android:name=".chat_activity"></activity>
+        <activity android:name=".LoginActivity" />
         <activity
             android:name=".Find_friendsActivity"
             android:parentActivityName=".MainActivity" />
+        <activity android:name=".Find_GroupsActivity" />
+        <activity android:name=".GroupProfile" />
+        <activity android:name=".ProfileActivity" />
         <activity android:name=".Crop_Image_Activity" />
         <activity android:name=".GroupChatActivity" />
         <activity android:name=".SettingsActivity" />
@@ -23,7 +27,7 @@
             android:theme="@style/Base.Theme.AppCompat" />
         <activity android:name=".RegisterActivity" />
         <activity android:name=".MainActivity" />
-        <activity android:name=".LoginActivity">
+        <activity android:name=".StartingActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -31,9 +35,9 @@
             </intent-filter>
         </activity>
     </application>
-    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
+    <uses-permission android:name="android.permission.INTERNET" />
 
 </manifest>

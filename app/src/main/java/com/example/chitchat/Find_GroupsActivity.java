@@ -11,9 +11,13 @@ import de.hdodenhof.circleimageview.CircleImageView;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -27,23 +31,26 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.squareup.picasso.Picasso;
 
-public class Find_friendsActivity extends AppCompatActivity {
+import static com.example.chitchat.SettingsActivity.PICK_IMAGE;
 
-    private Toolbar friendsToolbar;
+public class Find_GroupsActivity extends AppCompatActivity {
+
+    private Toolbar groupsToolbar;
     private RecyclerView mrecyclerview;
     private FirebaseAuth mAuth;
     private DatabaseReference groups_ref,users_ref;
     private String Current_id;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_find_friends);
+        setContentView(R.layout.activity_find__groups);
+        groupsToolbar=findViewById(R.id.friends_app_toolbar);
+        setSupportActionBar(groupsToolbar);
+        getSupportActionBar().setTitle("Find Groups");
 
-        friendsToolbar=findViewById(R.id.friends_app_toolbar);
-        setSupportActionBar(friendsToolbar);
-        getSupportActionBar().setTitle("Find Friends");
-
-
+        groups_ref= FirebaseDatabase.getInstance().getReference().child("groups");
         users_ref=FirebaseDatabase.getInstance().getReference().child("users");
         mAuth=FirebaseAuth.getInstance();
         Current_id=mAuth.getCurrentUser().getUid();
@@ -53,40 +60,32 @@ public class Find_friendsActivity extends AppCompatActivity {
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
+
     }
-
-
     protected void onStart()
     {
         super.onStart();
 
-        FirebaseRecyclerOptions<Contacts> options=new FirebaseRecyclerOptions.Builder<Contacts>().setQuery(users_ref,Contacts.class).build();
-        FirebaseRecyclerAdapter<Contacts,FindFriendViewHolder> adapter=new FirebaseRecyclerAdapter<Contacts,FindFriendViewHolder>(options) {
+        FirebaseRecyclerOptions<Groups> options=new FirebaseRecyclerOptions.Builder<Groups>().setQuery(groups_ref,Groups.class).build();
+        FirebaseRecyclerAdapter<Groups,FindFriendViewHolder> adapter=new FirebaseRecyclerAdapter<Groups,FindFriendViewHolder>(options) {
             @Override
-            protected void onBindViewHolder(@NonNull final FindFriendViewHolder holder, final int position, @NonNull Contacts model)
+            protected void onBindViewHolder(@NonNull final FindFriendViewHolder holder, final int position, @NonNull Groups model)
             {
-                   if(model.getName()!=null)
-                    holder.userName.setText(model.getName());
-                   if(model.getStatus()!=null)
+                if(model.getName()!=null)
+                   holder.userName.setText(model.getName());
 
-                    holder.userStatus.setText(model.getStatus());
-
-               if(model.getImage()!=null)
-                    Picasso.get().load(model.getImage()).into(holder.profileImage);
 
 
                 holder.itemView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
 
-                        Intent i=new Intent(Find_friendsActivity.this,ProfileActivity.class);
-                        String Visit_user_id=getRef(position).getKey();
-
-                        i.putExtra("Visit_user_id",Visit_user_id);
-
-                        startActivity(i);
-
-                    }
+                           Intent intent=new Intent(Find_GroupsActivity.this,GroupProfile.class);
+                           String str=getRef(position).getKey();
+//                           Toast.makeText(Find_GroupsActivity.this,str,Toast.LENGTH_SHORT).show();
+                           intent.putExtra("Group_Name",str);
+                           startActivity(intent);
+                            }
 
 
 
@@ -98,9 +97,9 @@ public class Find_friendsActivity extends AppCompatActivity {
 
             @NonNull
             @Override
-            public Find_friendsActivity.FindFriendViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
-                View view= LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.user_display,viewGroup,false);
-                Find_friendsActivity.FindFriendViewHolder viewHolder=new Find_friendsActivity.FindFriendViewHolder(view);
+            public FindFriendViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
+                View view= LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.group_display,viewGroup,false);
+                FindFriendViewHolder viewHolder=new FindFriendViewHolder(view);
                 return viewHolder;
             }
         };
@@ -110,17 +109,13 @@ public class Find_friendsActivity extends AppCompatActivity {
     public static class FindFriendViewHolder extends RecyclerView.ViewHolder
     {
         TextView userName;
-        TextView userStatus;
-        CircleImageView profileImage;
+
 
         public FindFriendViewHolder(@NonNull View itemView)
         {
             super(itemView);
-            userName=itemView.findViewById(R.id.user_name);
-            userStatus=itemView.findViewById(R.id.user_status);
-            profileImage=itemView.findViewById(R.id.profile_pic);
-
-
+            userName=itemView.findViewById(R.id.group_name);
         }
     }
+
 }

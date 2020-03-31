@@ -2,6 +2,7 @@ package com.example.chitchat;
 
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -9,6 +10,9 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.media.Image;
+import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.text.TextUtils;
@@ -23,6 +27,7 @@ import android.widget.Toast;
 
 
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.auth.FirebaseAuth;
@@ -32,11 +37,23 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
+import com.theartofdev.edmodo.cropper.CropImage;
+import com.theartofdev.edmodo.cropper.CropImageView;
+
+import java.security.acl.Group;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.HashMap;
 
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.viewpager.widget.ViewPager;
+
+import static com.example.chitchat.SettingsActivity.PICK_IMAGE;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -50,9 +67,10 @@ public class MainActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private DatabaseReference rootref;
     private String CurrentId;
+    private StorageReference GroupProfileImagesRef;
+    private  String CurrentState;
 
-
-
+    public static final int PICK_IMAGE = 1;
 
     protected void onCreate(Bundle savedInstanceState)
     {
@@ -63,7 +81,7 @@ public class MainActivity extends AppCompatActivity {
         CurrentId=mAuth.getCurrentUser().getUid();
         rootref= FirebaseDatabase.getInstance().getReference();
 
-
+        GroupProfileImagesRef= FirebaseStorage.getInstance().getReference().child("GroupProfileImages");
 
         mtoolbar=(Toolbar) findViewById(R.id.main_page_toolbar);
         setSupportActionBar(mtoolbar);
@@ -76,7 +94,10 @@ public class MainActivity extends AppCompatActivity {
 
       mTabLayout=(TabLayout)findViewById(R.id.main_tabs);
       mTabLayout.setupWithViewPager(myViewPager);
+      CurrentState="offline";
     }
+
+
 
     public boolean onCreateOptionsMenu(Menu menu)
     {
@@ -92,15 +113,22 @@ public class MainActivity extends AppCompatActivity {
                  Intent friendIntent=new Intent(MainActivity.this,Find_friendsActivity.class);
                  startActivity(friendIntent);
                 return true;
+            case R.id.find_group:
+                Intent groupIntent=new Intent(MainActivity.this,Find_GroupsActivity.class);
+                startActivity(groupIntent);
+                return true;
+
             case R.id.Logout:
                 mAuth.signOut();
                Intent intent=new Intent(MainActivity.this,LoginActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                startActivity(intent);
+               finish();
                return true;
 
              case R.id.create_Group:
                 createNewGroup();
-              return true;
+                return true;
 
              case R.id.settings:
                    Intent settingintent=new Intent(MainActivity.this,SettingsActivity.class);
@@ -116,86 +144,54 @@ public class MainActivity extends AppCompatActivity {
 
     private void createNewGroup()
     {
-
-        AlertDialog.Builder alertDialog = new AlertDialog.Builder(MainActivity.this, R.style.AlertDialog);
-        alertDialog.setTitle("Enter Group Name");
-        alertDialog.setCancelable(true);
-        final EditText input = new EditText(MainActivity.this);
-        input.setHint("e.g. chatting Group");
-        alertDialog.setView(input);
+        Intent intent=new Intent(MainActivity.this,GroupProfile.class);
+        intent.putExtra("Group_Name","No_Grp_name");
+        startActivity(intent);
+    }
 
 
 
-        alertDialog.setPositiveButton("Create", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which)
-            {
-                final String groupName=input.getText().toString();
-                if(TextUtils.isEmpty(groupName))
-                {
-                    Toast.makeText(MainActivity.this,"Enter Group Name",Toast.LENGTH_SHORT).show();
-                }
-                else
-                {
-
-                  rootref.child("groups").addValueEventListener(new ValueEventListener() {
-                      @Override
-                      public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-
-                              rootref.child("groups").child(groupName).child(CurrentId).setValue("").addOnCompleteListener(new OnCompleteListener<Void>() {
-                                  @Override
-                                  public void onComplete(@NonNull Task<Void> task) {
-                                      if(task.isSuccessful())
-                                      {
-                                          Toast.makeText(MainActivity.this,"User Added Successfully",Toast.LENGTH_SHORT).show();
-                                      }
-                                  }
-                              });
-                      }
-
-                      @Override
-                      public void onCancelled(@NonNull DatabaseError databaseError) {
-
-                      }
-                  });
+    private void updateUserStatus(String state)
+    {
 
 
-                    rootref.child("users").child(CurrentId).child("groups").addValueEventListener(new ValueEventListener() {
+        String SaveCurTime,SaveCurDate;
+        Calendar calendar=Calendar.getInstance();
 
-                        @Override
-                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+        SimpleDateFormat currentDate=new SimpleDateFormat("MMM dd,yyyy");
+        SaveCurDate= currentDate.format(calendar.getTime());
 
-                             rootref.child("users").child(CurrentId).child("groups").child(groupName).setValue("").addOnCompleteListener(new OnCompleteListener<Void>() {
-                                 @Override
-                                 public void onComplete(@NonNull Task<Void> task) {
-                                     if(task.isSuccessful()) {
+        SimpleDateFormat currentTime=new SimpleDateFormat("hh:mm a");
+        SaveCurTime= currentTime.format(calendar.getTime());
 
-                                       //Use bundle to pass data
-//                                         data.putString("data", groupName);//put string, int, etc in bundle with a key value
-//                                         GroupsFragment.setArguments(data);//Finally set argument bundle to fragment
-//
-//                                         mfragmentManager.beginTransaction().replace(R.id.fragmentContainer, GroupsFragment).commit();//now replace the argument fragment
+        HashMap<String,Object> onlineState=new HashMap<>();
+        onlineState.put("time",SaveCurTime);
+        onlineState.put("date",SaveCurDate);
+        onlineState.put("state",state);
 
 
-                                         Toast.makeText(MainActivity.this, "Group Created Successfully", Toast.LENGTH_SHORT).show();
-                                     }
-                                     else
-                                         Toast.makeText(MainActivity.this, "Group is Not Created", Toast.LENGTH_SHORT).show();
-                                 }
-                             });
-                        }
-
-                        @Override
-                        public void onCancelled(@NonNull DatabaseError databaseError) {
-
-                        }
-                    });
-                }
-            }
-        });
-
-        alertDialog.show();
-
+        rootref.child("users").child(CurrentId).child("userStatus").updateChildren(onlineState);
 
     }
+
+//protected void onPause()
+//{
+//    super.onPause();
+//    if(CurrentState.equals("online"))
+//       updateUserStatus("offline");
+//    CurrentState="onffine";
+//
+//}
+//protected void onResume()
+//{
+//    super.onResume();
+//    if(CurrentState.equals("offline"))
+//    updateUserStatus("online");
+//    CurrentState="online";
+//}
+
+
+
+
+
 }

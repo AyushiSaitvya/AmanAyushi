@@ -7,10 +7,15 @@
 
     <!-- TODO: Update blank fragment layout -->
 
-   <ListView
-       android:id="@+id/group_list"
-       android:layout_width="match_parent"
-       android:layout_height="match_parent"></ListView>
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_centerVertical="true"
+        android:layout_below="@id/main_app_bar"
+        >
+    </androidx.recyclerview.widget.RecyclerView>
+
 
 
 </FrameLayout>
